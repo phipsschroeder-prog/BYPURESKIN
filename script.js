@@ -10,13 +10,6 @@ const HERO_SEITEN = [0, 1, 2, 3];
 // ── Mobile-Erkennung ─────────────────────────────────────────
 function isMobile() { return window.innerWidth <= 768; }
 
-// FIX: liefert die tatsächliche, aktuelle Viewport-Höhe (wichtig auf Mobile,
-// da sich window.innerHeight ändert, wenn die Adressleiste ein-/ausblendet).
-// So bleiben JS-Berechnungen immer synchron mit dem CSS (100dvh).
-function getViewportHeight() {
-  return document.documentElement.clientHeight || window.innerHeight;
-}
-
 // ── Burger Menü ───────────────────────────────────────────────
 function toggleMenu() {
   const isOpen = menuOverlay.classList.toggle('open');
@@ -100,7 +93,7 @@ function getSeitenIndex() {
     });
     return closest;
   }
-  return Math.round(container.scrollTop / getViewportHeight());
+  return Math.round(container.scrollTop / window.innerHeight);
 }
 
 // ── Logo ein-/ausblenden + tauschen ──────────────────────────
@@ -209,19 +202,42 @@ container.addEventListener('wheel', (e) => {
   const gesamtSeiten = document.querySelectorAll('.section').length;
   const zielIndex    = Math.max(0, Math.min(gesamtSeiten - 1, aktuellerIdx + richtung));
 
-  container.scrollTo({ top: zielIndex * getViewportHeight(), behavior: 'smooth' });
+  container.scrollTo({ top: zielIndex * window.innerHeight, behavior: 'smooth' });
   setTimeout(() => { isScrolling = false; }, 800);
 }, { passive: false });
 
-// ── Mobile: natives CSS Scroll-Snapping ───────────────────────
-// FIX: Die eigene Touch-Berechnung (manuelles scrollIntoView) wurde entfernt.
-// Sie hat mit dem nativen Momentum-Scrolling des Handys kollidiert und dazu
-// geführt, dass die Seite mittendrin zwischen zwei Sections hängen blieb.
-// Jetzt übernimmt scroll-snap-type (siehe CSS) das Einschnappen zuverlässig,
-// das Verbergen der Toasts beim Scrollen reicht hier aus.
-container.addEventListener('touchstart', () => {
+// ── Mobile: Touch Snap Scroll ─────────────────────────────────
+let touchStartY = 0;
+let touchMoved = false;
+let isTouchScrolling = false;
+
+container.addEventListener('touchstart', (e) => {
   if (!isMobile()) return;
+  touchStartY = e.touches[0].clientY;
+  touchMoved = false;
+}, { passive: true });
+
+container.addEventListener('touchmove', (e) => {
+  if (!isMobile()) return;
+  touchMoved = true;
+  e.preventDefault();
+}, { passive: false });
+
+container.addEventListener('touchend', (e) => {
+  if (!isMobile() || isTouchScrolling || !touchMoved) return;
+  const delta = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(delta) < 30) return;
+
+  isTouchScrolling = true;
   verbergeToasts();
+
+  const richtung     = delta > 0 ? 1 : -1;
+  const aktuellerIdx = getSeitenIndex();
+  const gesamtSeiten = document.querySelectorAll('.section').length;
+  const zielIndex    = Math.max(0, Math.min(gesamtSeiten - 1, aktuellerIdx + richtung));
+
+  container.scrollTo({ top: zielIndex * window.innerHeight, behavior: 'smooth' });
+  setTimeout(() => { isTouchScrolling = false; }, 800);
 }, { passive: true });
 
 // ── Scroll-Events ─────────────────────────────────────────────
@@ -236,15 +252,6 @@ container.addEventListener('scroll', () => {
   scrollEndTimer = setTimeout(() => {
     zeigeToasts();
   }, 250);
-});
-
-// FIX: Bei Größenänderung des Viewports (z.B. Adressleiste blendet sich
-// auf dem Handy ein/aus, oder Tastatur öffnet sich) Dots/Logo/Nav-Farbe
-// neu berechnen, damit nichts "hängen bleibt" oder falsch markiert ist.
-window.addEventListener('resize', () => {
-  aktualisiereDots();
-  aktualisiereNavFarbe();
-  aktualisiereLogo();
 });
 
 // ── Initialisierung ───────────────────────────────────────────

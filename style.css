@@ -757,29 +757,14 @@ body.nav-dark .nav-toggle svg {
 
   .scroll-container {
     height: 100vh;
-    height: 100dvh; /* FIX: dynamische Viewport-Höhe gegen das "Springen" bei Adressleiste */
     overflow-y: scroll;
-    /* FIX: natives Scroll-Snapping statt eigener JS-Berechnung.
-       Der Browser snappt jetzt selbst zuverlässig zur nächsten Section,
-       statt mittendrin "hängen" zu bleiben. */
-    scroll-snap-type: y mandatory;
+    scroll-snap-type: none;
     overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
   }
 
   .section {
     height: auto;
     min-height: 100vh;
-    min-height: 100dvh; /* FIX */
-    scroll-snap-align: start;
-    scroll-snap-stop: always; /* FIX: verhindert, dass bei schnellem Wischen Sections übersprungen werden */
-  }
-
-  /* Produktseite und Footer dürfen intern scrollen (mehr Inhalt als Bildschirm)
-     daher hier kein scroll-snap-stop, sonst blockiert es das interne Scrollen */
-  .section.products,
-  .section.footer {
-    scroll-snap-stop: normal;
   }
 
   /* ── Navigation ──────────────────────────────────────────── */
@@ -827,23 +812,8 @@ body.nav-dark .nav-toggle svg {
   .dot.active { height: 28px; }
 
   /* ── Hero ────────────────────────────────────────────────── */
-  .hero {
-    height: 100vh;
-    height: 100dvh; /* FIX: war fest auf 100vh, dadurch sprang das Bild beim Scrollen mit der Adressleiste */
-  }
+  .hero { height: 100vh; }
   .hero__content { left: 24px; bottom: 100px; }
-
-  /* FIX: Bild & picture explizit blockieren und auf volle Höhe zwingen,
-     damit beim Laden kein Layout-Sprung (CLS) entsteht und das Bild
-     nicht durch den Inhalt nach unten gedrückt wird */
-  .hero picture,
-  .hero__image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
 
   /* ── Split Screen → vertikal stapeln ────────────────────── */
   .split,
@@ -851,7 +821,6 @@ body.nav-dark .nav-toggle svg {
     flex-direction: column;
     height: auto;
     min-height: 100vh;
-    min-height: 100dvh; /* FIX */
   }
 
   .split__left,
@@ -863,8 +832,6 @@ body.nav-dark .nav-toggle svg {
   .split .split__right {
     order: -1;
     height: 45vh;
-    height: 45dvh; /* FIX */
-    flex-shrink: 0; /* FIX: verhindert, dass Flex das Bild zusammendrückt, wenn der Text lang ist */
   }
 
   .split .split__left {
@@ -876,7 +843,6 @@ body.nav-dark .nav-toggle svg {
   .split--reversed .split__left {
     order: -1;
     height: 45vh;
-    height: 45dvh; /* FIX */
     padding: 0;
     overflow: hidden;
     flex-shrink: 0; /* FIX: verhindert dass das Bild zusammengedrückt wird */
@@ -899,7 +865,6 @@ body.nav-dark .nav-toggle svg {
   /* FIX: Produktseite scrollbar machen damit alle 4 Karten + Buttons sichtbar */
   .section.products {
     height: 100vh;
-    height: 100dvh; /* FIX */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -947,7 +912,6 @@ body.nav-dark .nav-toggle svg {
   .footer {
     height: auto;
     min-height: 100vh;
-    min-height: 100dvh; /* FIX */
     padding: 48px 24px 28px;
   }
 
